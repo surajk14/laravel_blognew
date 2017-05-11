@@ -1,0 +1,192 @@
+About Laravel - Its MVC framework
+
+Installation -
+php 5.6>
+php mbstring extension
+php openssl extension
+php pdo extension
+php tokenizer extension
+php xml extension
+
+first install composer manager - its a dependancy management tool. it allows to declare libraries required for your project.
+envirment varible  - for ubuntu - export PATH="$PATH:$HOME/.config/composer/vendor/bin"
+									source ~/.bashrc
+
+run " laravel installer" its from composer package
+
+laravel new blog - this will create fresh laravel installation with all of laravels dependencies.
+
+php artisan - its just like interface for laravel which provide set of commands for easiness in development like drush in drupal, crud in yii
+
+To create table 
+php artisan make:migration {name}
+
+we can use php artisan make to generate components automaticaly. for eg. make:contrroller, model, jobs, mail
+to view all artisan commands php artisan help make:migration
+
+Eloquent-
+its active record presentation or similar to active record class in laravel
+php artisan tinker
+for eg-App\Task::all(), App\Task::pluck('body'), App\Task::where('id', '>', 2)
+
+php artisan make:model Task
+php artisan tinker(interface to application)
+App\Task::where('id', '>', 1);
+App\Task::pluck('body');
+App\Task::find(1)/first();
+we can also called model function in tinker;
+
+php artisan migrate:reset
+rollback db migration 
+
+php composer dump-autoload - refresh autoload files
+
+DB methods
+DB::table
+
+php artisan tinker - its shell script platform to interact with application
+
+routes
+views
+migration
+eloquent
+db methods
+controllers
+route model binding
+tinker
+form request and validation
+laravel mix and fornt-end framework
+eloquent relations
+layouts and structures
+
+
+Controller
+Route::get('task/', 'TaskController@index');
+when task request called then assign this controller and its action
+
+controller located Http because its http request to application
+php artisan make:controller TaskController
+
+Rout::get('task/{taskid}', 'TaskController@show');
+
+In controller
+
+public function show($id) {
+	$tasks = Task::find($id);
+	return view('tasks.show', compact('tasks')); //its delegates to controller
+}
+------------------------------------------------------------------------
+
+route model binding
+conceptually we are calling particular action from route by passing parameter to controller action, so role of route model binding is treat it prameter as object.
+Route::get('tasks/{task}', 'TaskController@show');
+
+in controller
+public function show(Task $task) //here we creating object but condition is instance should be same name as in routes parameter else it will not work
+{
+	return view('tasks.show', compact('task'));
+}
+-----------------------------------------------------------------------
+
+Layout and structure
+
+need to make generic structure of layout implementation
+so as per laravel standard, layout file should be in 
+resource/views/layout.blade.php //blade is like implementation template engine
+so
+in layout.blad.php
+html structure and how to follwing shows how to show content
+<body> @yield('content'); //this will tell here have to insert content </body>
+@yield('footer');
+
+now calling layout, it follows bottom up approach
+in any particular view
+@extends('layout') //this allows to extract file and replace section
+
+//we define section in layout where content should place so interact as following
+@section('content')
+type content
+@endsection
+
+@section('footer')
+@endsection
+
+
+we can also include files, eg. nav bar
+we will keep it in separate file eg. layout.nav (layout is folder and in that nav.blade.php) so in resource/views/layout/nav.blade.php
+@include(layout.nav)
+---------------------------------------------------------------
+
+Form request data and CSRF 
+
+request type	request uri
+GET 			/posts - to all posts
+GET 	/posts/create - sepecific to that function
+POST 	/posts - to store in database
+GET 	/posts/{id}/edit - just to view
+GET 	/posts/{id}
+PATCH 	/posts/{id} - update post and save to db
+DELETE 		/posts/{id}
+
+api request
+Route::post, patch, delete, get
+
+php artisan make:controller TaskController -r
+that will generate basic request functions in controller
+
+CSRF
+cross site request forgery - request forgery term is like attack from external site through form so to prevent csrf generates unique token id to it, unauthorise commands are performed on behalf of authenticated user.
+
+So in laravel compulsory need to include csrf token - syntax -
+{{ csrf_field() }} //it will treat as hidden input in form
+
+to view request - syntax -
+dd(request()->all());
+
+MassAssignmeException - it occurs when we processing mass data to form to save so as per security concern its not allowed. this will be in following case - 
+Post::create(request()->all());
+So to prevent this we can use massive store only on data which is not that much sensable.
+	so we can define fillable propery in model like
+		protected $fillable = ['title', 'body']; //this propery means we can accept only this
+		protected $guarded = ['user_id']; // this propery inverse to fillable that except user_id while request
+So implementing above choice is very tedious, so smart way is
+we can create separate model file as follows -
+Model.php this will extend Eloquent Class
+In Model class we will define this fillable and guarded properties.
+So better practice is - 
+Post::create(request(['title', 'body']));
+-----------------------------------------------------
+
+Form Validation 101
+
+basically laravel follows validation scenario like javascript validator.
+for eg.
+server side validation
+$this->validate(request(), [
+	'title' =>'required|max:10',
+	'body'=>'required'
+]);
+
+so on form, it populates $errors variable, so we can view it as - @foreach($errors->all() as $error) {{ $error }}
+------------------------------------------------------------
+
+Rendering posts
+
+rendering posts to view just similar to passing data to view from controller. 
+Post::latest()->get(); -- latest() is Eloquent builder class function which fetch all record in desc order. in funciton it implemented like orderBy('created_at', 'asc')->get so we can also use same in code.
+oldest()->get(); -- oldest is also same as latest only diff is it will fetch in asc order.
+-----------------------------------------------------------
+
+Laravel mix and the Front-end
+
+resources/assets/ - js, sass
+so in this session it just explain how laravel is compatible with front-end applications.
+so overall it have webpack.mix.js and package.json which maintains the dependencies of front end application.
+for eg. if we want to configure node.js then simply download node js and confirm with same . so package.json maintain node dependencies. so we can run nmp - nmp run dev, watch these are defined commands in webpack.mix.js
+
+-------------------------------------------------------
+
+Eloquent Relationships and Comments
+
+so basically we implementing here post and comments so based on that will look for relationship between them. post has many comments.
+Comments::class - php v 5.5 and above use this it define fore class so its like App\Comments
